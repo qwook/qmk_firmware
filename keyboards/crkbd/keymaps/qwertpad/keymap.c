@@ -123,7 +123,7 @@ const uint16_t layers[][MATRIX_ROWS][MATRIX_COLS] = {
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
       XXXXXXX,    KC_MEDIA_PREV_TRACK,    KC_AUDIO_VOL_DOWN,    KC_MEDIA_NEXT_TRACK,    KC_SCOLON,    KC_QUOTE,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,\
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      XXXXXXX,    KC_BSLASH,    KC__MUTE,    KC_COMM,    KC_DOT,    KC_SLASH,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,\
+      XXXXXXX,    KC_BSLASH,    KC_AUDIO_MUTE,    KC_COMM,    KC_DOT,    KC_SLASH,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,\
   //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------+--------|
                                           XXXXXXX, XXXXXXX, XXXXXXX,    XXXXXXX, XXXXXXX, XXXXXXX \
                                       //`--------------------------'  `--------------------------'
@@ -176,6 +176,8 @@ bool osm_alt;
 bool osm_shift;
 bool osm_command;
 
+bool backspace_keymap[MATRIX_ROWS][MATRIX_COLS];
+
 // This is an esoteric conditional.
 // If we turn on modifiers but end up using some key in the backspace layer,
 // we want to turn off those modifiers when we exit the backspace layer.
@@ -218,6 +220,7 @@ void reregister_modifiers(void) {
 }
 
 void turn_off_modifiers(void) {
+    print("Turned off all modifiers.\n");
     disable_modifiers();
     modifiers_are_disabled = false; // topkek
     osm_ctrl = false;
@@ -230,12 +233,13 @@ void toggle_modifier(bool *osm_key, uint16_t code) {
         *osm_key = !*osm_key;
         if (*osm_key) {
             register_code(code);
+            print("Toggle modifier on.\n");
         } else {
             unregister_code(code);
+            print("Toggle modifier off.\n");
         }
         if (!is_modifier_on() && backspace_layer_enabled) {
             turn_off_modifiers_after_background_layer_done = false;
-            print("modifier_off");
         }
 }
 
@@ -291,11 +295,12 @@ void press_special_code(uint16_t code) {
         // Backspace layer enabled.
         if (is_modifier_on() && backspace_layer_enabled) {
             turn_off_modifiers_after_background_layer_done = true;
-            print("turn off modifiers after!!");
         }
         register_code(code);
         // If this is not a background layer, then all modifiers are one shot and should turn off.
-        if (is_modifier_on() && !backspace_layer_enabled && !are_we_going_to_hold_the_modifier_keys) {
+        if (is_modifier_on() && !backspace_layer_enabled && !are_we_going_to_hold_the_modifier_keys && code != KC_LSHIFT) {
+            uprintf("Ahh %d %d\n", code, CMB_NUM);
+            print("Why is this being turned off?\n");
             turn_off_modifiers();
         }
     }
@@ -334,7 +339,12 @@ void release_special_code(uint16_t code) {
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     uint16_t real_keycode = layers[_DEFAULT][record->event.key.row][record->event.key.col];
-    if (backspace_layer_enabled) {
+    if (backspace_layer_enabled || (!record->event.pressed && backspace_keymap[record->event.key.row][record->event.key.col])) {
+        if (record->event.pressed) {
+            backspace_keymap[record->event.key.row][record->event.key.col] = true;
+        } else {
+            backspace_keymap[record->event.key.row][record->event.key.col] = false;
+        }
         real_keycode = layers[_BACKSPACE][record->event.key.row][record->event.key.col];
         if (real_keycode == XXXXXXX) {
             real_keycode = layers[_DEFAULT][record->event.key.row][record->event.key.col];
@@ -420,12 +430,15 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 fake_pressed_backspace = false;
                 // Remove the next line if you want to make this a combo. Otherwise this is a normal layer.
                 backspace_layer_enabled = true;
+                print("Backspace Layer ENABLED\n");
                 turn_off_modifiers_after_background_layer_done = false;
             } else {
                 backspace_layer_enabled = false;
+                print("Backspace Layer DISABLED\n");
                 if (is_modifier_on() && are_we_going_to_hold_the_modifier_keys) {
                     are_we_going_to_hold_the_modifier_keys = false;
                     turn_off_modifiers();
+                    print("Backspace raised. Turning off the modifiers..\n");
                     return false;
                 }
                 if (alt_tab_on) {
@@ -433,7 +446,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                     release_special_code(KC_LALT);
                 }
                 if (turn_off_modifiers_after_background_layer_done) {
-                    print("ok turn off the modifiers now");
+                    print("Why is this being turned off 2?\n");
                     turn_off_modifiers();
                 }
             }
@@ -526,13 +539,13 @@ void matrix_scan_user(void){
                     was_in_combo_number = true;
                     pressed_number = false; // Disable number.
                     press_special_code(layers[_NUMBER][y][x]);
-                } else if (timer_elapsed(backspace_timer) < COMBO_TIME && !in_backspace_combo_keymap[y][x] && layers[_BACKSPACE] != XXXXXXX) {
+                }/* else if (timer_elapsed(backspace_timer) < COMBO_TIME && !in_backspace_combo_keymap[y][x] && layers[_BACKSPACE] != XXXXXXX) {
                     backspace_layer_enabled = true;
                     in_backspace_combo_keymap[y][x] = true;
                     was_in_combo_backspace = true;
                     pressed_backspace = false; // Disable backspace.
                     press_special_code(layers[_BACKSPACE][y][x]);
-                }
+                }*/
             // If we are not in a combo button state, and we're still pressing this button, and we are pass the point in time where this would be registered as a combo, and we are not already passing a fake button press.
             } else if (!in_spacebar_combo_keymap[y][x] && !in_symbol_combo_keymap[y][x] && !in_number_combo_keymap[y][x] && !in_backspace_combo_keymap[y][x] && pressed_keymap[y][x] && timer_elapsed(combo_timers[y][x]) >= COMBO_TIME && fake_pressed_keymap[y][x] == false) {
                 fake_pressed_keymap[y][x] = true;

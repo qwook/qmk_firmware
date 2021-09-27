@@ -24,9 +24,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 /* Select hand configuration */
 
-#define MASTER_LEFT
+// #define MASTER_LEFT
 
-#define USE_SERIAL_PD2
+//#define USE_SERIAL_PD2
 
 #ifdef RGBLIGHT_ENABLE
     #undef RGBLED_NUM
@@ -39,9 +39,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 
 #define FORCE_NKRO
-#define ONESHOT_TIMEOUT 8000
-#define TAPPING_TERM 501
-#define PERMISSIVE_HOLD
-#define RETRO_TAPPING
-#define COMBO_COUNT 16
-#define COMBO_TERM 100
+// #define ONESHOT_TIMEOUT 8000
+// #define TAPPING_TERM 501
+// #define PERMISSIVE_HOLD
+// #define RETRO_TAPPING
+// #define COMBO_COUNT 16
+// #define COMBO_TERM 100
