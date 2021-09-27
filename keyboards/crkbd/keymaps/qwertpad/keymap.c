@@ -112,7 +112,7 @@ const uint16_t layers[][MATRIX_ROWS][MATRIX_COLS] = {
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
       XXXXXXX,    KC_LEFT,    KC_DOWN,    KC_RIGHT,    XXXXXXX,    XXXXXXX,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,\
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      OSM_SHFT,    CTRL_Z,    CTRL_X,    CTRL_C,    CTRL_V,    OSM_SHFT,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,\
+      XXXXXXX,    CTRL_Z,    CTRL_X,    CTRL_C,    CTRL_V,    OSM_SHFT,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,\
   //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------+--------|
                                           OSM_CTRL, OSM_ALT, OSM_CMD,    XXXXXXX, XXXXXXX, XXXXXXX \
                                       //`--------------------------'  `--------------------------'
@@ -203,6 +203,9 @@ void disable_modifiers(void) {
     if (osm_shift) {
         unregister_code(KC_LSHIFT);
     }
+    if (osm_command) {
+        unregister_code(KC_LGUI);
+    }
     modifiers_are_disabled = true;
 }
 
@@ -215,6 +218,9 @@ void reregister_modifiers(void) {
     }
     if (osm_shift) {
         register_code(KC_LSHIFT);
+    }
+    if (osm_command) {
+        register_code(KC_LGUI);
     }
     modifiers_are_disabled = false;
 }
@@ -286,7 +292,7 @@ void press_special_code(uint16_t code) {
     } else if (code == OSM_SHFT) {
         toggle_modifier(&osm_shift, KC_LSHIFT);
     } else if (code == OSM_CMD) {
-        osm_command = !osm_command;
+        toggle_modifier(&osm_command, KC_LGUI);
     } else {
         if (alt_tab_on) {
             alt_tab_on = false;
@@ -461,7 +467,16 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                     return false;
                 }
                 // Store how long it's been since we pressed this button.
-                combo_timers[record->event.key.row][record->event.key.col] = timer_read();
+                // If this button isn't used in any combo, just press it.
+                if (layers[_RIGHT_HAND][record->event.key.row][record->event.key.col] != XXXXXXX ||
+                    layers[_SYMBOL][record->event.key.row][record->event.key.col] != XXXXXXX ||
+                    layers[_NUMBER][record->event.key.row][record->event.key.col] != XXXXXXX) {
+                    combo_timers[record->event.key.row][record->event.key.col] = timer_read();
+                } else {
+                    press_special_code(layers[_DEFAULT][record->event.key.row][record->event.key.col]);
+                    fake_pressed_keymap[record->event.key.row][record->event.key.col] = true;
+                    return false;
+                }
             } else {
                 // Reset button timer.
                 combo_timers[record->event.key.row][record->event.key.col] = 0;
