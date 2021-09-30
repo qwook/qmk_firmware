@@ -207,6 +207,7 @@ bool modifiers_are_disabled = false;
 // Should we continue the spacebar combo?
 // This is an experimental feature. If we do a combo and hold the spacebar, let's continue on the combo layer.
 bool continue_spacebar_combo = false;
+bool continue_number_combo = false;
 
 void disable_modifiers(void) {
     if (osm_ctrl) {
@@ -431,6 +432,14 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         if (real_keycode == XXXXXXX) {
             real_keycode = layers[_DEFAULT][record->event.key.row][record->event.key.col];
         }
+        if ((continue_spacebar_combo || pressed_spacebar) && keycode == CMB_SPC) {
+            real_keycode = CMB_SPC;
+            backspace_keymap[record->event.key.row][record->event.key.col] = false;
+        }
+        if ((continue_number_combo || pressed_number) && keycode == CMB_NUM) {
+            real_keycode = CMB_NUM;
+            backspace_keymap[record->event.key.row][record->event.key.col] = false;
+        }
     }
     switch (real_keycode) {
         case CMB_SPC:
@@ -485,6 +494,9 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         }
         case CMB_NUM:
         {
+            if (!record->event.pressed) {
+                continue_number_combo = false;
+            }
             pressed_number = record->event.pressed;
             if (record->event.pressed) {
                 number_timer = timer_read();
@@ -571,6 +583,13 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 if (continue_spacebar_combo) {
                     in_spacebar_combo_keymap[record->event.key.row][record->event.key.col] = true;
                     press_special_code(layers[_RIGHT_HAND][record->event.key.row][record->event.key.col]);
+                    return false;
+                }
+                // Allows you to hold the number as if it were a layer. Allows for continuation of combos if we hold down space.
+                // This is added to save your thumb.
+                if (continue_number_combo) {
+                    in_number_combo_keymap[record->event.key.row][record->event.key.col] = true;
+                    press_special_code(layers[_NUMBER][record->event.key.row][record->event.key.col]);
                     return false;
                 }
                 // Store how long it's been since we pressed this button.
@@ -672,6 +691,7 @@ void matrix_scan_user(void){
                     current_cosmetic = COSMETIC_NUMBER;
                     // combo_timers[y][x] = 0;
                     number_timer = 0;
+                    continue_number_combo = true;
                 }/* else if (timer_elapsed(backspace_timer) < COMBO_TIME && !in_backspace_combo_keymap[y][x] && layers[_BACKSPACE] != XXXXXXX) {
                     backspace_layer_enabled = true;
                     in_backspace_combo_keymap[y][x] = true;
@@ -714,7 +734,7 @@ void matrix_scan_user(void){
 }
 
 void keyboard_post_init_user(void) {
-    debug_enable=false;
+    debug_enable=true;
 }
 
 oled_rotation_t oled_init_user(oled_rotation_t rotation) {
