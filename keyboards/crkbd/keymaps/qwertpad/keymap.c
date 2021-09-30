@@ -669,12 +669,15 @@ void matrix_scan_user(void){
                 if (timer_elapsed(spacebar_timer) < COMBO_TIME && !in_combo && layers[_RIGHT_HAND] != XXXXXXX) {
                     in_spacebar_combo_keymap[y][x] = true;
                     was_in_combo_spacebar = true;
-                    pressed_spacebar = false; // Disable spacebar.
                     press_special_code(layers[_RIGHT_HAND][y][x]);
                     current_cosmetic = COSMETIC_RIGHT_HAND;
                     // combo_timers[y][x] = 0;
                     spacebar_timer = 0;
-                    continue_spacebar_combo = true;
+                    // Are we still holding spacebar? Ok let's continue the combo.
+                    if (pressed_spacebar) {
+                        continue_spacebar_combo = true;
+                    }
+                    pressed_spacebar = false; // Disable spacebar.
                 } else if (timer_elapsed(symbol_timer) < COMBO_TIME && !in_combo && layers[_RIGHT_HAND] != XXXXXXX) {
                     in_symbol_combo_keymap[y][x] = true;
                     was_in_combo_symbol = true;
@@ -686,12 +689,15 @@ void matrix_scan_user(void){
                 } else if (timer_elapsed(number_timer) < COMBO_TIME && !in_combo && layers[_NUMBER] != XXXXXXX) {
                     in_number_combo_keymap[y][x] = true;
                     was_in_combo_number = true;
-                    pressed_number = false; // Disable number.
                     press_special_code(layers[_NUMBER][y][x]);
                     current_cosmetic = COSMETIC_NUMBER;
                     // combo_timers[y][x] = 0;
                     number_timer = 0;
-                    continue_number_combo = true;
+                    // Are we still holding number? Ok let's continue the combo.
+                    if (pressed_number) {
+                        continue_number_combo = true;
+                    }
+                    pressed_number = false; // Disable number.
                 }/* else if (timer_elapsed(backspace_timer) < COMBO_TIME && !in_backspace_combo_keymap[y][x] && layers[_BACKSPACE] != XXXXXXX) {
                     backspace_layer_enabled = true;
                     in_backspace_combo_keymap[y][x] = true;
