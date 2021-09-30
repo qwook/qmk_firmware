@@ -39,6 +39,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 
 #define FORCE_NKRO
+
+#define OLED_FONT_H "keyboards/crkbd/lib/glcdfont.c"
 // #define ONESHOT_TIMEOUT 8000
 // #define TAPPING_TERM 501
 // #define PERMISSIVE_HOLD

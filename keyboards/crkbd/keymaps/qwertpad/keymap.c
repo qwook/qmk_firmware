@@ -66,7 +66,8 @@ enum keycodes {
     OSM_CTRL,
     OSM_ALT,
     OSM_SHFT,
-    OSM_CMD
+    OSM_CMD,
+    OSM_FN,
 };
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
@@ -97,11 +98,11 @@ const uint16_t layers[][MATRIX_ROWS][MATRIX_COLS] = {
     ),
     [_RIGHT_HAND] = LAYOUT( \
   //,-----------------------------------------------------.                    ,-----------------------------------------------------.
-       KC_ESC,    KC_P,    KC_O,    KC_I,    KC_U,    KC_Y,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,\
+       KC_ESC,    KC_SLASH,    KC_O,    KC_I,    KC_U,    KC_Y,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,\
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
       XXXXXXX,    KC_A,    KC_L,    KC_K,    KC_J,    KC_H,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,\
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      XXXXXXX,    KC_COMM,    KC_DOT,    KC_SLASH,    KC_M,    KC_N,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,\
+      XXXXXXX,    KC_COMM,    KC_DOT,    KC_P,    KC_M,    KC_N,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,\
   //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------+--------|
                                           XXXXXXX, XXXXXXX, XXXXXXX,    XXXXXXX, XXXXXXX, XXXXXXX \
                                       //`--------------------------'  `--------------------------'
@@ -110,7 +111,7 @@ const uint16_t layers[][MATRIX_ROWS][MATRIX_COLS] = {
   //,-----------------------------------------------------.                    ,-----------------------------------------------------.
        XXXXXXX,    SATAB,    KC_UP,    ATAB,    XXXXXXX,    CTRL_Y,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,\
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      XXXXXXX,    KC_LEFT,    KC_DOWN,    KC_RIGHT,    XXXXXXX,    XXXXXXX,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,\
+      XXXXXXX,    KC_LEFT,    KC_DOWN,    KC_RIGHT,    XXXXXXX,    OSM_FN,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,\
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
       XXXXXXX,    CTRL_Z,    CTRL_X,    CTRL_C,    CTRL_V,    OSM_SHFT,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,\
   //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------+--------|
@@ -119,7 +120,7 @@ const uint16_t layers[][MATRIX_ROWS][MATRIX_COLS] = {
     ),
     [_SYMBOL] = LAYOUT( \
   //,-----------------------------------------------------.                    ,-----------------------------------------------------.
-       KC_TAB,    XXXXXXX,    KC_AUDIO_VOL_UP,    KC_MEDIA_PLAY_PAUSE,    KC_LBRACKET,    KC_RBRACKET,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,\
+       KC_TAB,    KC_PSCR,    KC_AUDIO_VOL_UP,    KC_MEDIA_PLAY_PAUSE,    KC_LBRACKET,    KC_RBRACKET,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,\
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
       XXXXXXX,    KC_MEDIA_PREV_TRACK,    KC_AUDIO_VOL_DOWN,    KC_MEDIA_NEXT_TRACK,    KC_SCOLON,    KC_QUOTE,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,\
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
@@ -134,7 +135,7 @@ const uint16_t layers[][MATRIX_ROWS][MATRIX_COLS] = {
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
       XXXXXXX,    KC_6,    KC_7,    KC_8,    KC_9,    KC_0,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,\
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      XXXXXXX,    KC_BSLASH,    KC_SLASH,    KC_ASTR,    KC_MINUS,    KC_PLUS,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,\
+      XXXXXXX,    KC_BRMD,    KC_BRMU,    KC_ASTR,    KC_MINUS,    KC_PLUS,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,\
   //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------+--------|
                                           XXXXXXX, XXXXXXX, XXXXXXX,    XXXXXXX, XXXXXXX, XXXXXXX \
                                       //`--------------------------'  `--------------------------'
@@ -175,6 +176,16 @@ bool osm_ctrl;
 bool osm_alt;
 bool osm_shift;
 bool osm_command;
+bool osm_fn;
+
+enum cosmetics {
+    COSMETIC_DEFAULT,
+    COSMETIC_RIGHT_HAND,
+    COSMETIC_SYMBOL,
+    COSMETIC_NUMBER,
+};
+
+uint8_t current_cosmetic = COSMETIC_DEFAULT;
 
 bool backspace_keymap[MATRIX_ROWS][MATRIX_COLS];
 
@@ -188,7 +199,7 @@ bool are_we_going_to_hold_the_modifier_keys;
 bool alt_tab_on = false;
 
 bool is_modifier_on(void) {
-    return osm_ctrl || osm_alt || osm_shift || osm_command;
+    return osm_ctrl || osm_alt || osm_shift || osm_command || osm_fn;
 }
 
 bool modifiers_are_disabled = false;
@@ -233,16 +244,19 @@ void turn_off_modifiers(void) {
     osm_alt = false;
     osm_shift = false;
     osm_command = false;
+    osm_fn = false;
 }
 
 void toggle_modifier(bool *osm_key, uint16_t code) {
         *osm_key = !*osm_key;
-        if (*osm_key) {
-            register_code(code);
-            print("Toggle modifier on.\n");
-        } else {
-            unregister_code(code);
-            print("Toggle modifier off.\n");
+        if (osm_key != XXXXXXX) {
+            if (*osm_key) {
+                register_code(code);
+                print("Toggle modifier on.\n");
+            } else {
+                unregister_code(code);
+                print("Toggle modifier off.\n");
+            }
         }
         if (!is_modifier_on() && backspace_layer_enabled) {
             turn_off_modifiers_after_background_layer_done = false;
@@ -293,6 +307,8 @@ void press_special_code(uint16_t code) {
         toggle_modifier(&osm_shift, KC_LSHIFT);
     } else if (code == OSM_CMD) {
         toggle_modifier(&osm_command, KC_LGUI);
+    } else if (code == OSM_FN) {
+        toggle_modifier(&osm_fn, XXXXXXX);
     } else {
         if (alt_tab_on) {
             alt_tab_on = false;
@@ -302,12 +318,34 @@ void press_special_code(uint16_t code) {
         if (is_modifier_on() && backspace_layer_enabled) {
             turn_off_modifiers_after_background_layer_done = true;
         }
-        register_code(code);
-        // If this is not a background layer, then all modifiers are one shot and should turn off.
-        if (is_modifier_on() && !backspace_layer_enabled && !are_we_going_to_hold_the_modifier_keys && code != KC_LSHIFT) {
-            uprintf("Ahh %d %d\n", code, CMB_NUM);
-            print("Why is this being turned off?\n");
-            turn_off_modifiers();
+        if (osm_fn) {
+            if (code == KC_Q) {
+                register_code(KC_F1);
+            } else if (code == KC_W) {
+                register_code(KC_F2);
+            } else if (code == KC_E) {
+                register_code(KC_F3);
+            } else if (code == KC_R) {
+                register_code(KC_F4);
+            } else if (code == KC_T) {
+                register_code(KC_F5);
+            } else if (code == KC_A) {
+                register_code(KC_F6);
+            } else if (code == KC_S) {
+                register_code(KC_F7);
+            } else if (code == KC_D) {
+                register_code(KC_F8);
+            } else if (code == KC_F) {
+                register_code(KC_F9);
+            } else if (code == KC_G) {
+                register_code(KC_F10);
+            } else if (code == KC_Z) {
+                register_code(KC_F11);
+            } else if (code == KC_X) {
+                register_code(KC_F12);
+            }
+        } else {
+            register_code(code);
         }
     }
 }
@@ -333,13 +371,47 @@ void release_special_code(uint16_t code) {
     } else if (code == CTRL_Y) {
         unregister_code(KC_Y);
         unregister_code(KC_LCTRL);
-    } else if (code == OSM_CTRL || code == OSM_ALT || code == OSM_SHFT || code == OSM_CMD) {
+    } else if (code == OSM_CTRL || code == OSM_ALT || code == OSM_SHFT || code == OSM_CMD || code == OSM_FN) {
         // TBD
     } else {
-        unregister_code(code);
+        if (osm_fn) {
+            if (code == KC_Q) {
+                unregister_code(KC_F1);
+            } else if (code == KC_W) {
+                unregister_code(KC_F2);
+            } else if (code == KC_E) {
+                unregister_code(KC_F3);
+            } else if (code == KC_R) {
+                unregister_code(KC_F4);
+            } else if (code == KC_T) {
+                unregister_code(KC_F5);
+            } else if (code == KC_A) {
+                unregister_code(KC_F6);
+            } else if (code == KC_S) {
+                unregister_code(KC_F7);
+            } else if (code == KC_D) {
+                unregister_code(KC_F8);
+            } else if (code == KC_F) {
+                unregister_code(KC_F9);
+            } else if (code == KC_G) {
+                unregister_code(KC_F10);
+            } else if (code == KC_Z) {
+                unregister_code(KC_F11);
+            } else if (code == KC_X) {
+                unregister_code(KC_F12);
+            }
+        } else {
+            unregister_code(code);
+        }
         // if (is_modifier_on() && !backspace_layer_enabled) {
         //     turn_off_modifiers();
         // }
+        // If this is not a background layer, then all modifiers are one shot and should turn off.
+        if (is_modifier_on() && !backspace_layer_enabled && !are_we_going_to_hold_the_modifier_keys && code != KC_LSHIFT) {
+            uprintf("Ahh %d %d\n", code, CMB_NUM);
+            print("Why is this being turned off?\n");
+            turn_off_modifiers();
+        }
     }
 }
 
@@ -375,6 +447,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             if (!record->event.pressed && !was_in_combo_spacebar && !fake_pressed_spacebar) {
                 press_special_code(KC_SPACE);
                 release_special_code(KC_SPACE);
+                spacebar_timer = 0;
                 return false;
             }
             return false;
@@ -397,6 +470,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             if (!record->event.pressed && !was_in_combo_symbol && !fake_pressed_symbol) {
                 press_special_code(KC_BSPACE);
                 release_special_code(KC_BSPACE);
+                symbol_timer = 0;
                 return false;
             }
             return false;
@@ -412,13 +486,13 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             // Stop pressing fake number.
             if (!record->event.pressed && fake_pressed_number) {
                 fake_pressed_number = false;
-                release_special_code(KC_LGUI);
+                // release_special_code(KC_LGUI);
                 return false;
             }
             // Unpressed the number within combo time, let's fake a quick number tap.
             if (!record->event.pressed && !was_in_combo_number && !fake_pressed_number) {
-                press_special_code(KC_LGUI);
-                release_special_code(KC_LGUI);
+                // press_special_code(KC_LGUI);
+                // release_special_code(KC_LGUI);
                 return false;
             }
             return false;
@@ -455,6 +529,24 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                     print("Why is this being turned off 2?\n");
                     turn_off_modifiers();
                 }
+            }
+            return false;
+        }
+        // Don't mind this spaghetti...
+        // This fixes dangling alt's.
+        case ATAB: {
+            if (record->event.pressed) {
+                press_special_code(ATAB);
+            } else {
+                release_special_code(ATAB);
+            }
+            return false;
+        }
+        case SATAB: {
+            if (record->event.pressed) {
+                press_special_code(SATAB);
+            } else {
+                release_special_code(SATAB);
             }
             return false;
         }
@@ -539,21 +631,31 @@ void matrix_scan_user(void){
             }
             // If we've pressed this button for less than 40 units, and the space bar for less than 40 units..
             if (timer_elapsed(combo_timers[y][x]) < COMBO_TIME) {
-                if (timer_elapsed(spacebar_timer) < COMBO_TIME && !in_spacebar_combo_keymap[y][x] && layers[_RIGHT_HAND] != XXXXXXX) {
+                bool in_combo = in_spacebar_combo_keymap[y][x] || in_symbol_combo_keymap[y][x] || in_number_combo_keymap[y][x];
+                if (timer_elapsed(spacebar_timer) < COMBO_TIME && !in_combo && layers[_RIGHT_HAND] != XXXXXXX) {
                     in_spacebar_combo_keymap[y][x] = true;
                     was_in_combo_spacebar = true;
                     pressed_spacebar = false; // Disable spacebar.
                     press_special_code(layers[_RIGHT_HAND][y][x]);
-                } else if (timer_elapsed(symbol_timer) < COMBO_TIME && !in_symbol_combo_keymap[y][x] && layers[_RIGHT_HAND] != XXXXXXX) {
+                    current_cosmetic = COSMETIC_RIGHT_HAND;
+                    combo_timers[y][x] = 0;
+                    spacebar_timer = 0;
+                } else if (timer_elapsed(symbol_timer) < COMBO_TIME && !in_combo && layers[_RIGHT_HAND] != XXXXXXX) {
                     in_symbol_combo_keymap[y][x] = true;
                     was_in_combo_symbol = true;
                     pressed_symbol = false; // Disable symbol.
                     press_special_code(layers[_SYMBOL][y][x]);
-                } else if (timer_elapsed(number_timer) < COMBO_TIME && !in_number_combo_keymap[y][x] && layers[_NUMBER] != XXXXXXX) {
+                    current_cosmetic = COSMETIC_SYMBOL;
+                    combo_timers[y][x] = 0;
+                    symbol_timer = 0;
+                } else if (timer_elapsed(number_timer) < COMBO_TIME && !in_combo && layers[_NUMBER] != XXXXXXX) {
                     in_number_combo_keymap[y][x] = true;
                     was_in_combo_number = true;
                     pressed_number = false; // Disable number.
                     press_special_code(layers[_NUMBER][y][x]);
+                    current_cosmetic = COSMETIC_NUMBER;
+                    combo_timers[y][x] = 0;
+                    number_timer = 0;
                 }/* else if (timer_elapsed(backspace_timer) < COMBO_TIME && !in_backspace_combo_keymap[y][x] && layers[_BACKSPACE] != XXXXXXX) {
                     backspace_layer_enabled = true;
                     in_backspace_combo_keymap[y][x] = true;
@@ -565,6 +667,7 @@ void matrix_scan_user(void){
             } else if (!in_spacebar_combo_keymap[y][x] && !in_symbol_combo_keymap[y][x] && !in_number_combo_keymap[y][x] && !in_backspace_combo_keymap[y][x] && pressed_keymap[y][x] && timer_elapsed(combo_timers[y][x]) >= COMBO_TIME && fake_pressed_keymap[y][x] == false) {
                 fake_pressed_keymap[y][x] = true;
                 press_special_code(layers[_DEFAULT][y][x]);
+                current_cosmetic = COSMETIC_DEFAULT;
             }
         }
     }
@@ -585,7 +688,7 @@ void matrix_scan_user(void){
     }
     if (pressed_number && max_combo_timers > 40 && timer_elapsed(number_timer) > 40 && !fake_pressed_number && !in_combo_state) {
         fake_pressed_number = true;
-        press_special_code(KC_LGUI);
+        // press_special_code(KC_LGUI);
     }
     // // Press the backspace if layer hasn't been activated yet.
     // if (!fake_pressed_backspace && backspace_layer_timer != 0 && timer_elapsed(backspace_layer_timer) >= COMBO_TIME && !backspace_layer_enabled && backspace_down) {
@@ -595,5 +698,57 @@ void matrix_scan_user(void){
 }
 
 void keyboard_post_init_user(void) {
-    debug_enable=true;
+    debug_enable=false;
+}
+
+oled_rotation_t oled_init_user(oled_rotation_t rotation) {
+    return OLED_ROTATION_270;  // flips the display 180 degrees if offhand
+}
+
+int i = 0;
+void oled_render_logo(void) {
+    // static const char PROGMEM crkbd_logo[] = {
+    //     0x80, 0x81, 0x82, 0x83, 0x84, 0x85, 0x86, 0x87, 0x88, 0x89, 0x8a, 0x8b, 0x8c, 0x8d, 0x8e, 0x8f, 0x90, 0x91, 0x92, 0x93, 0x94,
+    //     0xa0, 0xa1, 0xa2, 0xa3, 0xa4, 0xa5, 0xa6, 0xa7, 0xa8, 0xa9, 0xaa, 0xab, 0xac, 0xad, 0xae, 0xaf, 0xb0, 0xb1, 0xb2, 0xb3, 0xb4,
+    //     0xc0, 0xc1, 0xc2, 0xc3, 0xc4, 0xc5, 0xc6, 0xc7, 0xc8, 0xc9, 0xca, 0xcb, 0xcc, 0xcd, 0xce, 0xcf, 0xd0, 0xd1, 0xd2, 0xd3, 0xd4,
+    //     0};
+    // oled_write_P(crkbd_logo, false);
+    switch (current_cosmetic) {
+        case COSMETIC_DEFAULT:
+            oled_write_ln_P(PSTR("(^.^)  "), false);
+            break;
+        case COSMETIC_RIGHT_HAND:
+            oled_write_ln_P(PSTR("(o.o)  "), false);
+            break;
+        case COSMETIC_SYMBOL:
+            i = (i+1) % 500;
+            int j = i / 100;
+            if (j == 0) {
+                oled_write_ln_P(PSTR("($.$)  "), false);
+            } else if (j == 1) {
+                oled_write_ln_P(PSTR("(*.*)  "), false);
+            } else if (j == 2) {
+                oled_write_ln_P(PSTR("(&.&)  "), false);
+            } else if (j == 3) {
+                oled_write_ln_P(PSTR("(!.!)  "), false);
+            } else if (j == 4) {
+                oled_write_ln_P(PSTR("(?.?)  "), false);
+            }
+            break;
+        case COSMETIC_NUMBER:
+            oled_write_ln_P(PSTR("(#.#)  "), false);
+            break;
+    }
+    oled_write_ln_P(PSTR("CTRL"), osm_ctrl);
+    oled_write_ln_P(PSTR("ALT"), osm_alt);
+    oled_write_ln_P(PSTR("SHFT"), osm_shift);
+    oled_write_ln_P(PSTR("CMD"), osm_command);
+    oled_write_ln_P(PSTR("    "), true);
+    oled_write_ln_P(PSTR("F#"), osm_fn);
+    oled_write_ln_P(PSTR("    "), true);
+    oled_write_ln_P(PSTR("LYR"), backspace_layer_enabled);
+}
+
+void oled_task_user(void) {
+    oled_render_logo();
 }
