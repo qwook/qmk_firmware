@@ -204,6 +204,10 @@ bool is_modifier_on(void) {
 
 bool modifiers_are_disabled = false;
 
+// Should we continue the spacebar combo?
+// This is an experimental feature. If we do a combo and hold the spacebar, let's continue on the combo layer.
+bool continue_spacebar_combo = false;
+
 void disable_modifiers(void) {
     if (osm_ctrl) {
         unregister_code(KC_LCTRL);
@@ -432,6 +436,10 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         case CMB_SPC:
         {
             pressed_spacebar = record->event.pressed;
+            // Disable spacebar combo continuation regardless.
+            if (!record->event.pressed) {
+                continue_spacebar_combo = false;
+            }
             if (record->event.pressed) {
                 spacebar_timer = timer_read();
                 was_in_combo_spacebar = false;
@@ -558,6 +566,13 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                     press_special_code(layers[_BACKSPACE][record->event.key.row][record->event.key.col]);
                     return false;
                 }
+                // Allows you to hold the spacebar as if it were a layer. Allows for continuation of combos if we hold down space.
+                // This is added to save your thumb.
+                if (continue_spacebar_combo) {
+                    in_spacebar_combo_keymap[record->event.key.row][record->event.key.col] = true;
+                    press_special_code(layers[_RIGHT_HAND][record->event.key.row][record->event.key.col]);
+                    return false;
+                }
                 // Store how long it's been since we pressed this button.
                 // If this button isn't used in any combo, just press it.
                 if (layers[_RIGHT_HAND][record->event.key.row][record->event.key.col] != XXXXXXX ||
@@ -638,15 +653,16 @@ void matrix_scan_user(void){
                     pressed_spacebar = false; // Disable spacebar.
                     press_special_code(layers[_RIGHT_HAND][y][x]);
                     current_cosmetic = COSMETIC_RIGHT_HAND;
-                    combo_timers[y][x] = 0;
+                    // combo_timers[y][x] = 0;
                     spacebar_timer = 0;
+                    continue_spacebar_combo = true;
                 } else if (timer_elapsed(symbol_timer) < COMBO_TIME && !in_combo && layers[_RIGHT_HAND] != XXXXXXX) {
                     in_symbol_combo_keymap[y][x] = true;
                     was_in_combo_symbol = true;
                     pressed_symbol = false; // Disable symbol.
                     press_special_code(layers[_SYMBOL][y][x]);
                     current_cosmetic = COSMETIC_SYMBOL;
-                    combo_timers[y][x] = 0;
+                    // combo_timers[y][x] = 0;
                     symbol_timer = 0;
                 } else if (timer_elapsed(number_timer) < COMBO_TIME && !in_combo && layers[_NUMBER] != XXXXXXX) {
                     in_number_combo_keymap[y][x] = true;
@@ -654,7 +670,7 @@ void matrix_scan_user(void){
                     pressed_number = false; // Disable number.
                     press_special_code(layers[_NUMBER][y][x]);
                     current_cosmetic = COSMETIC_NUMBER;
-                    combo_timers[y][x] = 0;
+                    // combo_timers[y][x] = 0;
                     number_timer = 0;
                 }/* else if (timer_elapsed(backspace_timer) < COMBO_TIME && !in_backspace_combo_keymap[y][x] && layers[_BACKSPACE] != XXXXXXX) {
                     backspace_layer_enabled = true;
